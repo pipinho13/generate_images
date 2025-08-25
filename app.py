@@ -95,7 +95,7 @@ if uploaded_file:
             genre_folder = os.path.join("images", sanitize_filename(genre))
             os.makedirs(genre_folder, exist_ok=True)
 
-            image_filename = f"{sanitize_filename(album_name)}.png"
+            image_filename = f"{sanitize_filename(album_name)}.jpg"
             image_path = os.path.join(genre_folder, image_filename)
 
             image_data = requests.get(image_url).content
@@ -117,7 +117,6 @@ if uploaded_file:
                     model="gpt-image-1",
                     image=[img_file],
                     size="1024x1024",
-                    output_format = "jpeg",
                     prompt=title_prompt
                 )
 
@@ -138,7 +137,7 @@ if uploaded_file:
 
 st.header("🖼️ Browse & Bulk Re-Generate Album Covers")
 
-image_paths = glob.glob("images/**/*.png", recursive=True)
+image_paths = glob.glob("images/**/*.jpg", recursive=True)
 
 if image_paths:
     selected_images = st.multiselect("Select images to re-generate:", image_paths)
@@ -157,7 +156,6 @@ if image_paths:
                             model="gpt-image-1",
                             image=[img_file],
                             size="1024x1024",
-                            output_format = "jpeg",
                             prompt="""
                                 - Generate a different image using the detected keywords of the existing image.
                                 - Do not change the title
