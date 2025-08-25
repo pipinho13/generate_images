@@ -85,7 +85,8 @@ if uploaded_file:
                 prompt=prompt,
                 n=1,
                 size="1024x1024",
-                quality="standard",
+                quality="hd",
+                output_format = "jpeg",
                 response_format="url"
             )
 
@@ -109,12 +110,15 @@ if uploaded_file:
             The image is a cover of a music album that is missing its title.
             Add the exact title: "{album_name}" once on the image.
             Place it in a visually appealing, appropriate location and style.
+            **IMPORTANT: Make sure that the title has been added to the image!**
             """
 
             with open(image_path, "rb") as img_file:
                 result = client.images.edit(
                     model="gpt-image-1",
                     image=[img_file],
+                    size="1024x1024",
+                    output_format = "jpeg"
                     prompt=title_prompt
                 )
 
@@ -153,6 +157,8 @@ if image_paths:
                         result = client.images.edit(
                             model="gpt-image-1",
                             image=[img_file],
+                            size="1024x1024",
+                            output_format = "jpeg",
                             prompt="""
                                 - Generate a different image using the detected keywords of the existing image.
                                 - Do not change the title
