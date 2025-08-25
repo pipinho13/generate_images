@@ -166,7 +166,7 @@ if image_paths:
                     image_bytes = base64.b64decode(image_base64)
 
                     # Save new image with a suffix to avoid overwrite
-                    new_path = img_path.replace(".png", "_edited.png")
+                    new_path = img_path.replace(".jpg", "_edited.jpg")
                     with open(new_path, "wb") as f:
                         f.write(image_bytes)
 
