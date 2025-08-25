@@ -8,6 +8,8 @@ import random
 import base64
 import glob
 from openai import OpenAI
+from PIL import Image
+import io
 
 # ========== SETUP ==========
 
@@ -123,8 +125,12 @@ if uploaded_file:
             image_base64 = result.data[0].b64_json
             image_bytes = base64.b64decode(image_base64)
 
-            with open(image_path, "wb") as f:
-                f.write(image_bytes)
+            # Resize image to 1440x1440 using PIL
+            image_pil = Image.open(io.BytesIO(image_bytes))
+            resized_image = image_pil.resize((1440, 1440), Image.Resampling.LANCZOS)
+            
+            # Save resized image
+            resized_image.save(image_path, "JPEG", quality=95)
 
             st.success(f"✅ Saved: {image_path}")
 
@@ -165,10 +171,13 @@ if image_paths:
                     image_base64 = result.data[0].b64_json
                     image_bytes = base64.b64decode(image_base64)
 
+                    # Resize image to 1440x1440 using PIL
+                    image_pil = Image.open(io.BytesIO(image_bytes))
+                    resized_image = image_pil.resize((1440, 1440), Image.Resampling.LANCZOS)
+
                     # Save new image with a suffix to avoid overwrite
                     new_path = img_path.replace(".jpg", "_edited.jpg")
-                    with open(new_path, "wb") as f:
-                        f.write(image_bytes)
+                    resized_image.save(new_path, "JPEG", quality=95)
 
                     st.image(new_path, caption=f"🔁 Re-generated: {os.path.basename(new_path)}", width=500)
                     st.success(f"Re-generated and saved: {new_path}")
