@@ -86,7 +86,6 @@ if uploaded_file:
                 n=1,
                 size="1024x1024",
                 quality="hd",
-                output_format = "jpeg",
                 response_format="url"
             )
 
