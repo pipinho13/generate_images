@@ -118,7 +118,7 @@ if uploaded_file:
                     model="gpt-image-1",
                     image=[img_file],
                     size="1024x1024",
-                    output_format = "jpeg"
+                    output_format = "jpeg",
                     prompt=title_prompt
                 )
 
