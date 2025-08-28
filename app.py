@@ -26,9 +26,6 @@ os.makedirs("images", exist_ok=True)
 os.makedirs("images_good", exist_ok=True)
 metadata_file = "image_metadata.csv"
 
-mood_variations = ["moody", "uplifting", "ethereal", "melancholic", "dramatic"]
-composition_instructions = ["central focus", "rule of thirds", "symmetrical balance", "dynamic movement"]
-
 def sanitize_filename(name):
     return re.sub(r'[\\/*?:"<>|]', "", str(name))
 
@@ -53,6 +50,13 @@ if uploaded_file:
         for i in range(excel_album.shape[0]):
             album_name = excel_album.loc[i]['Album Names']
             genre = excel_album.loc[i]['Genre']
+            
+            # Extract keywords from album title (ignore numbers)
+            title_keywords = []
+            if pd.notna(album_name) and album_name.strip():
+                # Split title into words and filter out numbers
+                title_words = [word.strip() for word in str(album_name).replace('-', ' ').replace('_', ' ').split()]
+                title_keywords = [word for word in title_words if not word.isdigit() and len(word) > 1]
 
             try:
                 genre_row = excel_genres[excel_genres['Genre'] == genre].iloc[0]
@@ -64,11 +68,31 @@ if uploaded_file:
             import_keywords = genre_row.get('Important Keywords', "")
             style = genre_row['Style']
 
-            mood = random.choice(mood_variations)
-            composition = random.choice(composition_instructions)
+            # Merge and randomly select 3 keywords
+            all_keywords = []
+            
+            # Add title keywords first (most important)
+            all_keywords.extend(title_keywords)
+            
+            # Add genre keywords
+            if pd.notna(keywords) and keywords.strip():
+                all_keywords.extend([kw.strip() for kw in str(keywords).split(',')])
+            if pd.notna(import_keywords) and import_keywords.strip():
+                all_keywords.extend([kw.strip() for kw in str(import_keywords).split(',')])
+            
+            # Remove empty keywords and duplicates
+            all_keywords = list(set([kw for kw in all_keywords if kw]))
+            
+            # Randomly select 3 keywords (or all if less than 3)
+            selected_keywords = random.sample(all_keywords, min(3, len(all_keywords))) if all_keywords else []
+            selected_keywords_str = ", ".join(selected_keywords)
 
-            # Create the main generation prompt
-            prompt = f"Create a highly detailed album cover artwork. Visual Theme: Use the album title: {album_name}, Keywords: {keywords}, Extra focus: {import_keywords if pd.notna(import_keywords) else 'atmospheric elements'}, Genre: {genre}. Artistic Style: {style}. Composition: {composition}. Mood: {mood}. Format: Square layout (1:1 aspect ratio), High detail suitable for an album cover, Include the album name visually, DO NOT generate carousel arts, DO NOT use border around, Try to make the images appear less AI generated."
+            # Create the main generation prompt with system and user instructions
+            system_prompt = "You are an expert graphic designer responsible for creating professional music album covers."
+            user_prompt = f"Design a square 1024x1024 artistic music album cover for the album titled '{album_name}', featuring: {selected_keywords_str}. Style: {style}, Genre: {genre}. Strictly no text, letters, numbers, borders, frames, outlines, vignettes, mockups, CDs, books, tapes, packaging, watermarks, or signatures. Not a product photo. Only include a clean, square, full-bleed illustration suitable for production. Max 3 anatomically correct creatures (not in background). Focus on mood, atmosphere, and visual storytelling aligned with the album's title and genre."
+
+            # Combine system and user prompts
+            prompt = f"{system_prompt} {user_prompt}"
 
             # Use the API with the stored prompts (which are now single-line)
             response = client.images.generate(
